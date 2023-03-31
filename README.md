@@ -8,7 +8,7 @@ OpenAPI GitHub Search (GSoC 2023)
 
 **Expected Outcomes:** An open-source API that allows you to pass in search parameters and then utilize the GitHub API to perform the search, helping simplify the search interface, make rate limits visible as part of the response, and handle conducting a search in an asynchronous way, allowing the user to make a call to initiate, but then separate calls to receive results over time as results come in, helping show outcomes over time.
 
-**Mentors:** @ialimustufa + 1-2 additional mentors
+**Mentors:** @anshuljain03 + 1-2 additional mentors
 
 **Project Repo:** here!
 
