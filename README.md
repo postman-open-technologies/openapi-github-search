@@ -6,7 +6,6 @@ The project will consist of developing an open-source API that allows you to pas
 ## Tech Stack
 - Node JS/Express JS
 - Typescript
-- Octokit.JS
 - Jest (For testing)
 - Docker
 - Python (Scripting)
@@ -20,9 +19,13 @@ How to get a Github API Key: https://docs.github.com/en/authentication/keeping-y
 
 1. Clone the repository to your local setup
 2. Make sure you have Docker installed locally.
-3. Run `docker compose up`
-4. Two Containers - Elasticsearch (The database container) and an instance of the server should have started.
-5. Now to load the database with OpenAPI Files, run 
+3. Make a `.env` file in the directory and add the variables: 
+	 **PORT**= **(port number you want to host the api)**
+	 **GITHUB_API_KEY**= **(github API key)**
+	 **ES_HOST**= **(determines location of elasticsearch db)** 
+4. Run `docker compose up`
+5. Two Containers - Elasticsearch (The database container) and an instance of the server should have started.
+6. Now to load the database with OpenAPI Files, run 
 `python scripts/seed_script.py` from the root of the folder. (Takes around 2-3hrs) 
 
 Check out the loading details below, to learn more about the loading script. 
