@@ -12,7 +12,7 @@ The project will consist of developing an open-source API that allows you to pas
 - ElasticSearch
 
 ## Dev Runbook 
-Dependancies: NodeJS 19, npm, Github APIKey
+Dependancies: NodeJS 18, npm, Github APIKey
 How to get a Github API Key: https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens  
 
 ## Setting up OpenAPI Search with Docker Compose
