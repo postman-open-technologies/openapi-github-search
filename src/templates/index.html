@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Github OpenAPI Search</title>
+    <style>
+      /* Add some basic styling for JSON output */
+      .json-container {
+        border: 1px solid #ccc;
+        padding: 10px;
+        background-color: #f7f7f7;
+        font-family: monospace;
+        white-space: pre-wrap;
+        word-wrap: break-word;
+      }
+      .json-container:empty {
+        display: none;
+      }
+      /* Hide all tab content by default */
+      .tab-content {
+        display: none;
+      }
+      /* Style for active tab button */
+      .active {
+        background-color: #ccc;
+      }
+      .results-container {
+        display: flex;
+        flex-direction: column;
+      }
+      .result-item {
+        display: flex;
+        align-items: center;
+        margin-bottom: 20px;
+      }
+      .avatar-image {
+        width: 100px;
+        height: 100px;
+        object-fit: cover;
+        margin-right: 10px;
+      }
+      .details {
+        flex: 1;
+      }
+      .truncate {
+        width: 1000px; /* Adjust this width as needed */
+        /* white-space: nowrap; */
+        max-height: 2.4em; /* Adjust this value to fit two lines of text */
+        line-height: 1.2em; /* Should match the line height of your text */
+        overflow: hidden;
+        text-overflow: ellipsis;
+        display: -webkit-box;
+        -webkit-line-clamp: 2; /* Number of lines to show */
+        -webkit-box-orient: vertical;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Github OpenAPI Search</h1>
+    <div class="tabs">
+      <button class="tab-button" onclick="openTab(event, 'passiveSearch')">Passive Search</button>
+      <button class="tab-button" onclick="openTab(event, 'activeSearch')">Active Search</button>
+      <button class="tab-button" onclick="openTab(event, 'updateOpenAPI')">Update OpenAPI</button>
+      <button class="tab-button" onclick="openTab(event, 'checkClusterHealth')">Check Cluster Health</button>
+    </div>
+  
+    <!-- Tab content -->
+    <div id="passiveSearch" class="tab-content">
+      <h2>Search</h2>
+      <input type="text" id="passiveSearchInput" placeholder="Enter query" />
+      <button id="passiveSearchButton">Search</button>
+      <div class="json-container" id="passiveSearchResults"></div>
+    </div>
+  
+    <div id="activeSearch" class="tab-content">
+      <h2>Active Search</h2>
+      <input type="text" id="activeSearchPrompt" placeholder="Enter prompt" />
+      <input type="text" id="activeSearchRepo" placeholder="Enter repository" />
+      <input type="text" id="activeSearchOrg" placeholder="Enter organization" />
+      <input type="text" id="activeSearchUser" placeholder="Enter user" />
+      <input type="text" id="activeSearchRootQuery" placeholder="Enter root query" />
+      <button id="activeSearchButton">Search</button>
+      <div id="activeSearchResults"></div>
+    </div>
+  
+    <div id="updateOpenAPI" class="tab-content">
+      <h2>Update OpenAPI Files</h2>
+      <button id="updateOpenAPIButton">Update</button>
+      <div id="updateOpenAPIResults"></div>
+    </div>
+  
+    <div id="checkClusterHealth" class="tab-content">
+      <h2>Check Cluster Health</h2>
+      <button id="checkClusterHealthButton">Check</button>
+      <div id="checkClusterHealthResults"></div>
+    </div>
+
+    <script>
+      async function getAvatarURL(organisation) {
+        try {
+          const response = await fetch(`https://api.github.com/orgs/${organisation}`);
+          const data = await response.json();
+          const avatarURL = data.avatar_url;
+          return avatarURL;
+        } catch (error) {
+          console.log(error);
+          return ""; 
+        }
+      }
+      function openTab(evt, tabName) {
+      // Hide all tab content
+      const tabContents = document.getElementsByClassName('tab-content');
+      for (const content of tabContents) {
+        content.style.display = 'none';
+      }
+
+      // Remove "active" class from all tab buttons
+      const tabButtons = document.getElementsByClassName('tab-button');
+      for (const button of tabButtons) {
+        button.classList.remove('active');
+      }
+
+      // Show the selected tab content and mark the button as active
+      document.getElementById(tabName).style.display = 'block';
+      evt.currentTarget.classList.add('active');
+    }
+      const passiveSearchButton = document.getElementById(
+        'passiveSearchButton',
+      );
+      const passiveSearchInput = document.getElementById('passiveSearchInput');
+      const passiveSearchResults = document.getElementById(
+        'passiveSearchResults',
+      );
+
+      const activeSearchButton = document.getElementById('activeSearchButton');
+      const activeSearchPrompt = document.getElementById('activeSearchPrompt');
+      const activeSearchRepo = document.getElementById('activeSearchRepo');
+      // ... (get other input elements)
+      const activeSearchResults = document.getElementById(
+        'activeSearchResults',
+      );
+
+      const updateOpenAPIButton = document.getElementById(
+        'updateOpenAPIButton',
+      );
+
+      const updateOpenAPIResults = document.getElementById(
+        'updateOpenAPIResults',
+      );
+
+      const checkClusterHealthButton = document.getElementById(
+        'checkClusterHealthButton',
+      );
+      const checkClusterHealthResults = document.getElementById(
+        'checkClusterHealthResults',
+      );
+
+      // Function to handle passive search
+      passiveSearchButton.addEventListener('click', async () => {
+        const query = passiveSearchInput.value;
+        const response = await fetch(`/search?q=${query}`);
+        const data = await response.json();
+            
+        const res = await Promise.all(data.map(async (item) => {
+          const avatarURI = await getAvatarURL(item._source.owner);
+          console.log(avatarURI);
+          return {
+            avatarURL: avatarURI,
+            title: item._source.title,
+            description: item._source.description,
+            version: item._source.version,
+            repository: item._source.repository,
+            organisation: item._source.owner,
+            url: item._source.URL,
+          };
+        }));
+        const resultsContainer = document.getElementById("passiveSearchResults");
+        resultsContainer.innerHTML = ""; // Clear previous results
+
+        res.forEach((item) => {
+          const resultDiv = document.createElement("div");
+          resultDiv.classList.add("result-item");
+          const avatarImg = document.createElement("img");
+          avatarImg.src = item.avatarURL;
+          avatarImg.classList.add("avatar-image");
+          const detailsDiv = document.createElement("div");
+          detailsDiv.classList.add("details");
+          const title = document.createElement("h2");
+          title.textContent = item.title;
+          const description = document.createElement("p");
+          description.classList.add("truncate");
+          description.textContent = item.description;
+          const repository = document.createElement("p");
+          repository.textContent = item.repository;
+          const organisation = document.createElement("p");
+          organisation.textContent = item.organisation;
+          // Append details to detailsDiv
+          detailsDiv.appendChild(title);
+          detailsDiv.appendChild(description);
+          detailsDiv.appendChild(repository);
+          detailsDiv.appendChild(organisation);
+          resultDiv.appendChild(avatarImg);
+          resultDiv.appendChild(detailsDiv);
+          resultsContainer.appendChild(resultDiv);
+        });
+      });
+
+      // Function to handle active search
+      activeSearchButton.addEventListener('click', async () => {
+        const prompt = activeSearchPrompt.value;
+        const repo = activeSearchRepo.value;
+        // ... (get other input values)
+        const response = await fetch(
+          `/openapi?prompt=${prompt}&repo=${repo}&org=${org}&user=${user}&rootquery=${rootquery}`,
+        );
+        const data = await response.json();
+        activeSearchResults.textContent = JSON.stringify(data, null, 2);
+      });
+
+      // Function to handle update OpenAPI files
+      updateOpenAPIButton.addEventListener('click', async () => {
+        const response = await fetch('/openapi', { method: 'PUT' });
+        const data = await response.json();
+        updateOpenAPIResults.textContent = JSON.stringify(data, null, 2);
+      });
+
+      // Function to handle check cluster health
+      checkClusterHealthButton.addEventListener('click', async () => {
+        const response = await fetch('/ping');
+        const data = await response.json();
+        checkClusterHealthResults.textContent = JSON.stringify(data, null, 2);
+      });
+    </script>
+  </body>
+</html>
